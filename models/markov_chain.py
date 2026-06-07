@@ -1,10 +1,3 @@
-"""
-models/markov_chain.py
------------------------
-First-order Markov Chain for longitudinal sequences.
-Supports diagnosis, progression, and clinical stages.
-"""
-
 import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
@@ -31,14 +24,6 @@ N_STATES = {
 
 
 class MarkovChainModel:
-    """
-    First-order homogeneous Markov Chain.
-    
-    Supports:
-      task='diag'  → states {0:B, 1:M}
-      task='prog'  → states {0:Stable, 1:Progressed}
-      task='stage' → states {0:Benign, 1:Stage I, 2:Stage II, 3:Stage III, 4:Stage IV}
-    """
 
     def __init__(self, task="diag", smoothing=MC_SMOOTHING):
         self.task = task
@@ -49,7 +34,6 @@ class MarkovChainModel:
         self.class_names = CLASS_NAMES.get(task, [f"S{i}" for i in range(self.n_states)])
 
     def fit(self, sequences):
-        """sequences: list of int lists"""
         self.counts[:] = 0.0
         for seq in sequences:
             for t in range(len(seq) - 1):
@@ -62,14 +46,12 @@ class MarkovChainModel:
         return self
 
     def predict_next(self, current_state):
-        """Return most likely next state"""
         return int(np.argmax(self.P[current_state]))
 
     def predict_proba(self, current_state):
         return self.P[current_state].copy()
 
     def predict_sequence(self, sequences):
-        """For each (state_t → state_t+1), predict next state."""
         y_true, y_pred = [], []
         for seq in sequences:
             for t in range(len(seq) - 1):
@@ -132,3 +114,7 @@ class MarkovChainModel:
                 self.print_transition_matrix()
                 
         return y_true, y_pred, {"accuracy": acc, "log_likelihood": ll}
+    
+    @property
+    def transition_matrix(self):
+        return self.P

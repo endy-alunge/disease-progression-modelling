@@ -1,9 +1,3 @@
-"""
-models/rnn_model.py
---------------------
-Fixed version - automatically detects feature dimensions.
-"""
-
 import os, sys
 import numpy as np
 import torch
@@ -43,6 +37,7 @@ class Attention(nn.Module):
 
 
 class SequenceDataset(Dataset):
+
     def __init__(self, X, y):
         self.X = torch.tensor(X, dtype=torch.float32)
         self.y = torch.tensor(y, dtype=torch.long)
@@ -55,9 +50,7 @@ class SequenceDataset(Dataset):
 
 
 class SequenceNet(nn.Module):
-    """
-    RNN with bidirectional layers and attention.
-    """
+    
     def __init__(self, cell="lstm", n_features=30, n_classes=2,
                  hidden_dim=RNN_HIDDEN_DIM, n_layers=RNN_N_LAYERS,
                  dropout=RNN_DROPOUT, bidirectional=True):
@@ -94,9 +87,6 @@ class SequenceNet(nn.Module):
 
 
 class RNNModel:
-    """
-    Training/evaluation wrapper for LSTM or GRU.
-    """
 
     def __init__(self, cell="lstm", task="diag", n_classes=2,
                  hidden_dim=RNN_HIDDEN_DIM, n_layers=RNN_N_LAYERS,
@@ -122,7 +112,6 @@ class RNNModel:
         self.lr = lr
 
     def _create_network(self, n_features):
-        """Create network with correct input dimension"""
         self.net = SequenceNet(
             cell=self.cell, 
             n_features=n_features, 
@@ -253,7 +242,6 @@ class RNNModel:
         print("  Loading requires n_features - use load_with_features()")
         
     def load_with_features(self, path, n_features):
-        """Load model with known feature dimension"""
         self._create_network(n_features)
         self.net.load_state_dict(torch.load(path, map_location=DEVICE))
         self.net.eval()

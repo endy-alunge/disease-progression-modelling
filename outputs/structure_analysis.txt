@@ -1,0 +1,12 @@
+======================================================================
+STRUCTURAL ANALYSIS RESULTS
+======================================================================
+
+Markov Chain - Diagnosis:
+  Diagonal dominance: 0.9999
+  Determinism: 0.9999
+  Normalized entropy: 0.0016
+
+Sequence Determinism:
+  Diagnosis determinism: 1.0000
+  Progression determinism: 1.0000

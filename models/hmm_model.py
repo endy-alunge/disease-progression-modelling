@@ -1,10 +1,3 @@
-"""
-models/hmm_model.py
---------------------
-Hidden Markov Model for longitudinal sequences.
-Supports diagnosis, progression, and clinical stages.
-"""
-
 import os, sys, warnings
 import numpy as np
 from sklearn.metrics import classification_report, accuracy_score
@@ -32,13 +25,6 @@ N_OBS = {
 
 
 class HMMModel:
-    """
-    Categorical HMM for longitudinal sequence modelling.
-    
-    task='diag'  → observations {0:B, 1:M}
-    task='prog'  → observations {0:Stable, 1:Progressed}
-    task='stage' → observations {0:Benign, 1:Stage I, 2:Stage II, 3:Stage III, 4:Stage IV}
-    """
 
     def __init__(self, task="diag", n_hidden=HMM_N_HIDDEN,
                  n_iter=HMM_N_ITER, tol=HMM_TOL, seed=SEED):
@@ -56,13 +42,11 @@ class HMMModel:
             self.n_hidden = max(n_hidden, 8)
 
     def _prepare(self, sequences):
-        """Convert list of sequences → hmmlearn concatenated format."""
         obs = np.concatenate(sequences).reshape(-1, 1).astype(int)
         lengths = [len(s) for s in sequences]
         return obs, lengths
 
     def _init_transmat(self):
-        """Initialize transition matrix with diagonal dominance"""
         transmat = np.eye(self.n_hidden) * 0.7
         transmat = transmat + np.ones((self.n_hidden, self.n_hidden)) * 0.3 / self.n_hidden
         return transmat / transmat.sum(axis=1, keepdims=True)
@@ -100,12 +84,10 @@ class HMMModel:
         return self
 
     def decode(self, sequence):
-        """Return (log_prob, hidden_sequence) via Viterbi."""
         obs = np.array(sequence).reshape(-1, 1)
         return self.model.decode(obs, algorithm="viterbi")
 
     def predict_next_obs(self, history):
-        """Given history sequence, predict most likely next observation."""
         if len(history) == 0:
             return int(np.argmax(self.model.emissionprob_.mean(axis=0)))
         
@@ -119,7 +101,6 @@ class HMMModel:
             return int(np.argmax(self.model.emissionprob_.mean(axis=0)))
 
     def predict_sequence(self, sequences):
-        """Predict next observation at every step. Returns (y_true, y_pred)."""
         y_true, y_pred = [], []
         for seq in sequences:
             for t in range(1, len(seq)):
@@ -161,6 +142,10 @@ class HMMModel:
                 zero_division=0
             ))
         return y_true, y_pred, {"accuracy": acc, "log_likelihood": ll}
+    
+    @property
+    def is_trained(self):
+        return self.model is not None
 
 
 if __name__ == "__main__":

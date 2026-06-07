@@ -1,9 +1,3 @@
-"""
-utils/preprocessor_improved.py
--------------------------------
-Improved preprocessor with clinical stage support and better RNN data preparation.
-"""
-
 import os, sys
 import numpy as np
 import pandas as pd
@@ -25,20 +19,6 @@ INT_TO_DIAG = {0: "B", 1: "M"}
 
 # ── Clinical Stage Functions (NEW) ────────────────────────────────────────────
 def get_stage_from_perimeter(perimeter, diagnosis):
-    """
-    Convert tumor perimeter and diagnosis to clinical stage.
-    
-    Parameters:
-    -----------
-    perimeter : float
-        perimeter_mean value from dataset
-    diagnosis : str
-        'M' for malignant, 'B' for benign
-    
-    Returns:
-    --------
-    int : stage code (0-4)
-    """
     if diagnosis == 'B':
         return 0  # Benign
     
@@ -90,17 +70,6 @@ def load_csv(path=CSV_PATH):
 
 # ── Build patient-level sequences (UPDATED with stages) ───────────────────────
 def build_patient_sequences(df):
-    """
-    Returns a list of dicts, one per patient:
-      {
-        'id':        patient id,
-        'diag_seq':  [0,0,1,1,...]   int label per year,
-        'prog_seq':  [0,1,0,...]     did label CHANGE at next step,
-        'stage_seq': [0,1,2,3,4,...] clinical stage per year (NEW),
-        'feat_seq':  np.array shape (T, 30),
-        'years':     [0,1,2,...],
-      }
-    """
     patients = []
     for pid, grp in df.groupby(ID_COL):
         grp = grp.sort_values(YEAR_COL)
@@ -175,7 +144,6 @@ def split_patients(patients, seed=SEED):
 
 # ── Normalise features (improved) ─────────────────────────────────────────────
 def fit_scaler(train_patients, method="standard"):
-    """Fit StandardScaler or MinMaxScaler on training feature rows."""
     all_feats = np.vstack([p["feat_seq"] for p in train_patients])
     
     if method == "standard":
@@ -190,7 +158,6 @@ def fit_scaler(train_patients, method="standard"):
 
 
 def apply_scaler(patients, scaler):
-    """Apply fitted scaler to a list of patients (in-place copy)."""
     scaled = []
     for p in patients:
         pc = dict(p)
@@ -200,7 +167,6 @@ def apply_scaler(patients, scaler):
 
 
 def add_temporal_features(patients):
-    """Add time since first visit as additional feature (NEW)"""
     for p in patients:
         years = np.array(p["years"]).reshape(-1, 1)
         time_since_first = years - years[0]
@@ -217,42 +183,24 @@ def add_temporal_features(patients):
 
 # ── Markov / HMM format (UPDATED with stages) ─────────────────────────────────
 def patients_to_diag_sequences(patients):
-    """Extract plain integer diagnosis sequences for Markov Chain / HMM."""
     return [p["diag_seq"] for p in patients]
 
 
 def patients_to_stage_sequences(patients):
-    """Extract plain integer stage sequences for Markov Chain / HMM (NEW)."""
     return [p["stage_seq"] for p in patients]
 
 
 def patients_to_prog_sequences(patients):
-    """Extract progression sequences."""
     return [p["prog_seq"] for p in patients]
 
 
 def patients_to_stage_prog_sequences(patients):
-    """Extract stage progression sequences (NEW)."""
     return [p["stage_prog_seq"] for p in patients]
 
 
 # ── RNN / supervised format (IMPROVED with better padding) ────────────────────
 def build_rnn_dataset(patients, task="diag", max_len=MAX_SEQ_LEN, 
                       add_temporal=ADD_TEMPORAL_FEATURES):
-    """
-    Build padded (X, y) arrays for RNN training with improved handling.
-
-    task options:
-      'diag'   → predict diagnosis label at each step
-      'prog'   → predict progression at each step
-      'stage'  → predict clinical stage at each step (NEW - BEST!)
-      'stage_prog' → predict stage progression
-
-    Returns:
-      X:      float32  (N, max_len, n_features)
-      y:      int64    (N,)
-      masks:  bool     (N, max_len) — True = real data
-    """
     n_feat = len(FEATURE_COLS)
     if add_temporal:
         n_feat += 1  # add time feature
@@ -306,7 +254,6 @@ def build_rnn_dataset(patients, task="diag", max_len=MAX_SEQ_LEN,
 
 
 def _pad_seq(seq, max_len, n_feat):
-    """Left-zero-pad a sequence to (max_len, n_feat)."""
     T = len(seq)
     if T >= max_len:
         # Take last max_len timesteps
@@ -316,7 +263,6 @@ def _pad_seq(seq, max_len, n_feat):
 
 
 def _build_mask(real_len, max_len):
-    """Boolean mask: True for real timesteps (right-aligned)."""
     mask = np.zeros(max_len, dtype=bool)
     start = max(0, max_len - real_len)
     mask[start:] = True
@@ -325,12 +271,6 @@ def _build_mask(real_len, max_len):
 
 # ── One-shot pipeline (UPDATED) ───────────────────────────────────────────────
 def load_and_prepare(csv_path=CSV_PATH, normalize=True, add_temporal=ADD_TEMPORAL_FEATURES):
-    """
-    Full pipeline:
-      load CSV → add stages → build sequences → split → normalise → build RNN arrays.
-
-    Returns a dict with everything needed by the models.
-    """
     df       = load_csv(csv_path)
     patients = build_patient_sequences(df)
 

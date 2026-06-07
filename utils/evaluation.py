@@ -1,8 +1,3 @@
-"""
-utils/evaluation.py
--------------------
-Evaluation utilities for sequence models.
-"""
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,7 +9,6 @@ from sklearn.metrics import (
 
 
 def compute_metrics(y_true, y_pred, model_name, task):
-    """Compute standard classification metrics."""
     return {
         "model": model_name,
         "task": task,
@@ -26,7 +20,6 @@ def compute_metrics(y_true, y_pred, model_name, task):
 
 
 def print_report(y_true, y_pred, model_name, task, log_likelihood=None):
-    """Print formatted evaluation report."""
     acc = accuracy_score(y_true, y_pred)
     print(f"\n  {model_name} — {task.upper()}")
     print(f"  Accuracy: {acc:.4f}")
@@ -37,15 +30,6 @@ def print_report(y_true, y_pred, model_name, task, log_likelihood=None):
 
 
 def plot_confusion_matrices(results, task, save_path=None):
-    """
-    Plot confusion matrices for all models on a given task.
-    
-    Parameters:
-    -----------
-    results : list of tuples (model_name, y_true, y_pred)
-    task : str ('diag' or 'prog')
-    save_path : str, optional
-    """
     n_models = len(results)
     if n_models == 0:
         print(f"  No results for task {task}")
@@ -102,7 +86,6 @@ def plot_markov_transitions(mc_diag, mc_prog, save_path=None):
 
 
 def plot_hmm_structure(hmm_model, task, save_path=None):
-    """Plot HMM structure (emission and transition matrices)."""
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     
     # Transition matrix
@@ -132,7 +115,6 @@ def plot_hmm_structure(hmm_model, task, save_path=None):
 
 
 def plot_rnn_training(lstm_model, gru_model, task, save_path=None):
-    """Plot RNN training curves."""
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     
     # Loss curves
@@ -168,10 +150,6 @@ def plot_rnn_training(lstm_model, gru_model, task, save_path=None):
 
 
 def plot_model_comparison(all_metrics, save_path=None):
-    """
-    Plot model comparison bar chart.
-    Handles dictionaries, tuples, and various input formats.
-    """
     import matplotlib.pyplot as plt
     import numpy as np
     
@@ -255,14 +233,6 @@ def plot_model_comparison(all_metrics, save_path=None):
 
 
 def plot_per_class_f1(all_results, save_path=None):
-    """
-    Plot per-class F1 scores heatmap.
-    
-    Parameters:
-    -----------
-    all_results : list of tuples (model_name, task, y_true, y_pred)
-    save_path : str, optional
-    """
     from sklearn.metrics import f1_score
     
     # Organize results by task
@@ -312,9 +282,6 @@ def plot_per_class_f1(all_results, save_path=None):
 def plot_sample_trajectories(test_patients, mc_model, hmm_model, 
                              lstm_model, gru_model, n_samples=5, 
                              max_len=10, save_path=None):
-    """
-    Plot sample patient trajectories with model predictions.
-    """
     import matplotlib.pyplot as plt
     
     n_samples = min(n_samples, len(test_patients))

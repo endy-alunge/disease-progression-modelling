@@ -1,15 +1,3 @@
-"""
-utils/data_generator.py
-------------------------
-Generates a synthetic longitudinal breast cancer CSV that matches
-the real dataset schema exactly. Used when no real file is provided.
-
-Real file schema:
-  id, diagnosis, year, radius_mean, ..., fractal_dimension_worst
-  - Each patient (id) has multiple rows, one per year (0..N)
-  - diagnosis is M (malignant) or B (benign) — can flip over time
-"""
-
 import os
 import numpy as np
 import pandas as pd
@@ -57,7 +45,6 @@ FEATURE_STATS = {
 }
 
 # Transition probs: P(next_diag | current_diag)
-#                 B      M
 DIAG_TRANSITION = {
     "B": [0.90, 0.10],   # benign mostly stays benign
     "M": [0.05, 0.95],   # malignant rarely remits
@@ -70,7 +57,6 @@ def _patient_id(n=5):
 
 
 def generate_patient(pid, n_years, start_diag, rng):
-    """Generate one patient's longitudinal records."""
     rows = []
     diag = start_diag
     for yr in range(n_years):
@@ -88,7 +74,6 @@ def generate_patient(pid, n_years, start_diag, rng):
 
 
 def generate_dataset(n_patients=300, min_years=4, max_years=8, output_path=None, seed=SEED):
-    """Generate full synthetic dataset and save to CSV."""
     rng = np.random.default_rng(seed)
     all_rows = []
     seen_ids = set()
